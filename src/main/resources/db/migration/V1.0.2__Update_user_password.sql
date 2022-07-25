@@ -1,0 +1,4 @@
+-- login: admin; password: admin-123
+-- update users
+-- set password = '$2a$10$9nwTLubhtCWjAQYUSOnx0Ox3klblmT3ipWPWCG1nL/I6YqpuNEH8G'
+-- where username = 'admin';
