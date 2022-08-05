@@ -10,21 +10,21 @@ import javax.persistence.*;
 @ToString
 @Entity
 @Table(name = "authorities")
-public class Authority implements GrantedAuthority {
+public class Authorities implements GrantedAuthority {
+
+    private static final long serialVersionUID = 4065375140379002510L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne
-    private User user;
-
+    @ManyToOne(targetEntity = User.class)
+    private transient User user;
     private String authority;
 
-    public Authority() {
+    public Authorities() {
     }
 
-    public Authority(String authority) {
+    public Authorities(String authority) {
         this.authority = authority;
     }
 

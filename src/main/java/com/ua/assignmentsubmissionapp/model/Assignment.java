@@ -24,8 +24,7 @@ public class Assignment {
     @ManyToOne(optional = false)
     private User user;
 
-//    @ManyToOne
-//    private User codeReviewer;
-//
-//    private LocalDateTime submittedDate;
+    @ManyToOne
+    private User codeReviewer;
+    private LocalDateTime submittedDate;
 }

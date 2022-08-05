@@ -3,50 +3,42 @@ package com.ua.assignmentsubmissionapp.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.ToString;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @ToString
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
-
+    private static final long serialVersionUID = 1840361243951715062L;
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "username")
     private String username;
-
     @JsonIgnore
-    @Column(name = "password")
     private String password;
-
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "user")
-    private Set<Authority> authorities = new HashSet<>();
-
-    @Column(name = "cohortStartDate")
+//    @ManyToOne(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id")
+    private Set<Authorities> authorities = new HashSet<>();
     private LocalDate cohortStartDate;
-
-    @Column(name = "bootcampDurationInWeeks")
     private Integer bootcampDurationInWeeks;
 
-//    @Override
-//    public Set<Authority> getAuthorities() {
-//        return authorities;
-//    }
-
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<GrantedAuthority> roles = new ArrayList<>();
-        roles.add(new Authority("ROLE_STUDENT"));
-        return roles;
+    public Set<Authorities> getAuthorities() {
+        return authorities;
     }
+
+//    @Override
+//    public Collection<? extends GrantedAuthority> getAuthorities() {
+//        List<GrantedAuthority> roles = new ArrayList<>();
+//        roles.add(new Authorities("ROLE_STUDENT"));
+//        return roles;
+//    }
 
     @Override
     public boolean isAccountNonExpired() {

@@ -28,6 +28,21 @@
   color: #61dafb;
 }
 
+.assignment-wrapper {
+  border: 1px dashed lightgray;
+  padding: 2em;
+  border-radius: 1em;
+  margin-top: 2em;
+}
+
+.assignment-wrapper-title {
+  width: min-content !important;
+  margin-top: -2em !important;
+  margin-bottom: 1em !important;
+  background-color: grey !important;
+  white-space: nowrap !important;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

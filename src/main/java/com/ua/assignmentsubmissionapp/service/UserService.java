@@ -16,9 +16,7 @@ public class UserService {
     @Autowired
     private UserRepository userRepo;
 
-
     public Optional<User> findByUsername(String username) {
-        System.out.println("Service findByUsername = " + userRepo.findByUsername(username));
         return userRepo.findByUsername(username);
     }
 

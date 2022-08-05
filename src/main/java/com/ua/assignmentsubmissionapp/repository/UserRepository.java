@@ -13,8 +13,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByUsername(String username);
 
-    @Query("select u from User  u " +
-            "join u.authorities auth " +
-            "where u.cohortStartDate is null or u.bootcampDurationInWeeks is null ")
-    List<User> findAllInactiveBootcampStudents();
+//    @Query("select u from User  u " +
+//            "join u.authorities auth " +
+//            "where u.cohortStartDate is null or u.bootcampDurationInWeeks is null ")
+//    List<User> findAllInactiveBootcampStudents();
 }

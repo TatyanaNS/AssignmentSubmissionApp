@@ -46,4 +46,14 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
+
+    @GetMapping("/validate")
+    public  ResponseEntity<?> validationToken (@RequestParam String token, @AuthenticationPrincipal User user) {
+        try {
+            Boolean isTokenValid = jwtUtil.validateToken(token, user);
+            return ResponseEntity.ok(isTokenValid);
+        } catch (ExpiredJwtException e) {
+            return ResponseEntity.ok(false);
+        }
+    }
 }

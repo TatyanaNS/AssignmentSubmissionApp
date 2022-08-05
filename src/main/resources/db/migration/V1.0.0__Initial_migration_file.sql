@@ -4,7 +4,7 @@ create table users(
     username varchar(50) not null,
     password varchar(100) not null,
     name varchar(50),
-    authority_id serial,
+--     authority_id serial,
     cohortStartDate date,
     bootcampDurationInWeeks integer,
     CONSTRAINT users_pk PRIMARY KEY (id)
@@ -15,7 +15,7 @@ create table assignments(
     id serial not null,
     number integer,
     status varchar(50),
-    githubUrl varchar(100),
+--     githubUrl varchar(255),
     branch varchar(50),
     codeReviewVideoUrl varchar(100),
     submittedDate date,
