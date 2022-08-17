@@ -1,4 +1,3 @@
-// import { useEffect } from 'react';
 import { Routes, Route } from "react-router-dom";
 import jwt_decode from "jwt-decode";
 import "./App.css";
@@ -6,21 +5,26 @@ import Dashboard from "./Dashboard";
 import Homepage from "./Homepage";
 import Login from "./Login";
 import PrivateRoute from "./PrivateRoute";
-import { useLocalState } from "./util/useLocalStorage";
 import AssignmentView from "./AssignmentView";
-import CodeReviewerDashboard from './CodeReviewerDashboard';
+import CodeReviewerDashboard from "./CodeReviewerDashboard";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import CodeReviewerAssignmentView from "./CodeReviewerAssignmentView";
+import { UserProvider, useUser } from "./UserProvider";
 
 function App() {
-  const [jwt, setJwt] = useLocalState("", "jwt");
+  const user = useUser();
   const [roles, setRole] = useState(getRoleFromJWT());
 
-  function getRoleFromJWT () {
-    if (jwt) {
-      let decodeJwt =  jwt_decode(jwt);
+  useEffect(() => {
+    setRole(getRoleFromJWT());
+  }, [user.jwt]);
+
+  function getRoleFromJWT() {
+    if (user.jwt) {
+      let decodeJwt = jwt_decode(user.jwt);
       return decodeJwt.authorities;
-    } 
+    }
     return [];
   }
 
@@ -68,11 +72,17 @@ function App() {
         }
       />
       <Route
-        path="/assignments/:id"
+        path="/assignments/:assignmentId"
         element={
-          <PrivateRoute>
-            <AssignmentView />
-          </PrivateRoute>
+          roles.find((role) => role === "ROLE_CODE_REVIEWER") ? (
+            <PrivateRoute>
+              <CodeReviewerAssignmentView />
+            </PrivateRoute>
+          ) : (
+            <PrivateRoute>
+              <AssignmentView />
+            </PrivateRoute>
+          )
         }
       />
       <Route path="/" element={<Homepage />} />

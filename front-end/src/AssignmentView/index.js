@@ -8,14 +8,18 @@ import {
   DropdownButton,
   Form,
   Row,
-  Badge,
 } from "react-bootstrap";
 import ajax from "../Services/fetchService";
-import { useLocalState } from "../util/useLocalStorage";
+import StatusBadge from "../StatusBadge";
+import { useUser } from "../UserProvider";
+import { useParams } from "react-router-dom";
+import CommentContainer from "../CommentContainer";
+// import dayjs from 'react-dayjs';
+// import { useInterval } from 'usehooks-ts';
 
 const AssignmentView = () => {
-  const [jwt, setJwt] = useLocalState("", "jwt");
-  const assignmentId = window.location.href.split("/assignments/")[1];
+  const user = useUser();
+  const { assignmentId } = useParams();
 
   const [githubUrl, setGithubUrl] = useState("");
   const [branch, setBranch] = useState("");
@@ -25,31 +29,92 @@ const AssignmentView = () => {
     number: null,
     status: null,
   });
+  // const emptyComment = {
+  //   id: null,
+  //   text: "",
+  //   assignmentId: assignmentId != null ? parseInt(assignmentId) : null,
+  //   user: user.jwt,
+  // };
+  // const [comment, setComment] = useState(emptyComment);
+  // const [comments, setComments] = useState([]);
   const [assignmentEnums, setAssignmentEnums] = useState([]);
   const [assignmentStatuses, setAssignmentStatuses] = useState([]);
-
   const prevassignmentValue = useRef(assignment);
+
+  // useInterval(() => {
+  //   updateCommentTimeDisplay();
+  // }, 1000 * 5);
+
+  // function updateCommentTimeDisplay() {
+  //   console.log("Comment in update: ", comments);
+  //   const commentsCopy = [...comments];
+  //   commentsCopy.forEach(
+  //     (comment) => (comment.createdDate = dayjs(comment.createdBy))
+  //   );
+  //   console.log("Copy of comments is: ", commentsCopy);
+  //   setComments(commentsCopy);
+  // }
+
+  // function handleEditComment(commentId) {
+  //   const i = comments.findIndex(comment => comment.id === commentId);
+  //   console.log("I've been to edit this comment ", comments[i]);
+  //   const commentCopy = {
+  //     id: comments[i].id,
+  //     text: comments[i].text,
+  //     assignmentId: assignmentId != null ? parseInt(assignmentId) : null,
+  //     user: user.jwt,
+  //   }
+  //   setComment(commentCopy);
+  // }
+
+  // function handleDeleteComment(commentId) {
+  //   console.log("I've been to delete this comment ", comment);
+  // }
+
+  // function updateComment(value) {
+  //   const commetnCopy = { ...comment };
+  //   commetnCopy.text = value;
+  //   setComment(commetnCopy);
+  // }
+
+  // function submitComment() {
+  //   if (comment.id) {
+  //     ajax(`/api/comments/${comment.id}`, "PUT", user.jwt, comment)
+  //     .then((d) => {
+  //       const commentsCopy = [...comments];
+  //       const i = commentsCopy.findIndex((comment) => comment.id === d.id);
+  //       commentsCopy.push[i] = d;
+  //       setComments(commentsCopy);
+  //       setComment(emptyComment);
+  //     });
+  //   } else {
+  //     ajax("/api/comments", "POST", user.jwt, comment).then((d) => {
+  //     const commentsCopy = [...comments];
+  //     commentsCopy.push(d);
+  //     setComments(commentsCopy);
+  //     setComment(emptyComment);
+  //   });
+  //   }
+
+  // }
 
   function updateAssignment(prop, value) {
     const newAssignment = { ...assignment };
     newAssignment[prop] = value;
-    console.log("newAssignment = ", newAssignment);
     setAssignment(newAssignment);
   }
 
   function persist() {
-    ajax(`/api/assignments/${assignmentId}`, "PUT", jwt, assignment).then(
+    ajax(`/api/assignments/${assignmentId}`, "PUT", user.jwt, assignment).then(
       (assignmentData) => {
         setAssignment(assignmentData);
       }
     );
   }
 
-  function save() {
-    console.log(`Status is: ${assignment.status}`);
-    if (assignment.status === assignmentStatuses[0].status) {
-      console.log("Setting new status to be: ", assignmentStatuses[1].status);
-      updateAssignment("status", assignmentStatuses[1].status);
+  function save(status) {
+    if (status && assignment.status !== status) {
+      updateAssignment("status", status);
     } else {
       persist();
     }
@@ -63,7 +128,7 @@ const AssignmentView = () => {
   }, [assignment]);
 
   useEffect(() => {
-    ajax(`/api/assignments/${assignmentId}`, "GET", jwt).then(
+    ajax(`/api/assignments/${assignmentId}`, "GET", user.jwt).then(
       (assignmentResponse) => {
         let assignmentData = assignmentResponse.assignment;
         if (assignmentData.branch === null) assignmentData.branch = "";
@@ -73,7 +138,15 @@ const AssignmentView = () => {
         setAssignmentStatuses(assignmentResponse.statusEnums);
       }
     );
-  }, []);
+  }, [user.jwt]);
+
+  // useEffect(() => {
+  //   ajax(`/api/comments?assignmentId=${assignmentId}`, "GET", user.jwt).then(
+  //     (commentsData) => {
+  //       setComments(commentsData);
+  //     }
+  //   );
+  // }, [comments]);
 
   return (
     <Container className="mt-5">
@@ -88,9 +161,7 @@ const AssignmentView = () => {
               )}
             </Col>
             <Col>
-              <Badge pill bg="success" style={{ fontSize: "1em" }}>
-                {assignment.status}
-              </Badge>
+              <StatusBadge text={assignment.status} />
             </Col>
           </Row>
           <Form.Group as={Row} className="my-3">
@@ -150,18 +221,67 @@ const AssignmentView = () => {
               />
             </Col>
           </Form.Group>
-          <div className="d-flex gap-5">
-            <Button type="submit" variant="success" onClick={() => save()}>
-              Submit Assignment
-            </Button>
-            <Button
-              type="submit"
-              variant="secondary"
-              onClick={() => (window.location.href = "/dashboard")}
-            >
-              Back
-            </Button>
-          </div>
+          {assignment.status === "Completed" ? (
+            <>
+              <Form.Group as={Row} className="d-flex align-items-center mb-3">
+                <Form.Label column sm="3" md="2">
+                  Code Review Video URL:
+                </Form.Label>
+                <Col sm="9" md="8" lg="6">
+                  <a
+                    href={assignment.codeReviewVideoUrl}
+                    style={{ fontWeight: "bold" }}
+                  >
+                    {assignment.codeReviewVideoUrl}
+                  </a>
+                </Col>
+              </Form.Group>
+              <div className="d-flex gap-5">
+                <Button
+                  type="submit"
+                  variant="secondary"
+                  onClick={() => (window.location.href = "/dashboard")}
+                >
+                  Back
+                </Button>
+              </div>
+            </>
+          ) : assignment.status === "Pending Submission" ? (
+            <div className="d-flex gap-5">
+              <Button
+                type="submit"
+                variant="success"
+                onClick={() => save("Submitted")}
+              >
+                Submit Assignment
+              </Button>
+              <Button
+                type="submit"
+                variant="secondary"
+                onClick={() => (window.location.href = "/dashboard")}
+              >
+                Back
+              </Button>
+            </div>
+          ) : (
+            <div className="d-flex gap-5">
+              <Button
+                type="submit"
+                variant="success"
+                onClick={() => save("Resubmitted")}
+              >
+                Resubmit Assignment
+              </Button>
+              <Button
+                type="submit"
+                variant="secondary"
+                onClick={() => (window.location.href = "/dashboard")}
+              >
+                Back
+              </Button>
+            </div>
+          )}
+            <CommentContainer assignmentId={assignmentId} />
         </>
       ) : (
         <></>

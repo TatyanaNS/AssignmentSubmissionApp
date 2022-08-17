@@ -1,12 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Form, Container, Row, Col, Button } from "react-bootstrap";
-import { useLocalState } from "../util/useLocalStorage";
+import  { useNavigate } from "react-router-dom";
+import { useUser } from "../UserProvider";
 
 const Login = () => {
+  const user = useUser();
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [jwt, setJwt] = useLocalState("", "jwt");
   // const [errorMsg, setErrorMsg] = useState(null);
+
+  useEffect(() => {
+    if (user.jwt) return navigate("/dashboard");
+  },[user]);
 
   function sendLoginRequest() {
     const reqBody = {
@@ -14,13 +20,6 @@ const Login = () => {
       password: password,
     };
 
-    // useEffect(() => {
-    //   const reqBody = {
-    //     "username": "admin",
-    //     "password": "admin-123"
-    //   };
-
-    // ajax("/api/auth/login", "POST", reqBody)
     fetch("/api/auth/login", {
       headers: {
         "Content-Type": "application/json",
@@ -29,17 +28,16 @@ const Login = () => {
       body: JSON.stringify(reqBody),
     })
       .then((response) => {
-        console.log("response = ", response);
         if (response.status === 200)
           return Promise.all([response.json(), response.headers]);
         else return Promise.reject("Invalid login attempt!");
       })
       .then(([body, headers]) => {
-        // headers.forEach((Element) => {
-        //   console.log(Element);
-        // })
-        setJwt(headers.get("authorization"));
-        window.location.href = "/dashboard";
+        user.setJwt(headers.get("authorization"));
+        // window.location.href = "/dashboard";
+      })
+      .catch((message) => {
+        alert(message);
       });
   }
 
@@ -94,7 +92,7 @@ const Login = () => {
             <Button
               type="button"
               size="lg"
-              onClick={() => (window.location.href = "/")}
+              onClick={() => (window.location.href ("/"))}
               variant="secondary"
             >
               Exit

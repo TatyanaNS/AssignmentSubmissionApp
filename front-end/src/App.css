@@ -43,6 +43,13 @@
   white-space: nowrap !important;
 }
 
+.comment-bubble {
+  background: #eee;
+  border-radius: 1em;
+  padding: 1em;
+  margin: 1em 0;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

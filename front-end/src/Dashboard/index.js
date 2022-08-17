@@ -1,44 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { useLocalState } from "../util/useLocalStorage";
-import { Card, Button, Badge,Row, Col } from "react-bootstrap";
+// import { useLocalState } from "../util/useLocalStorage";
+import { Card, Button, Row, Col } from "react-bootstrap";
 import ajax from "../Services/fetchService";
+import StatusBadge from "../StatusBadge";
+import { useUser } from "../UserProvider";
 
 const Dashboard = () => {
-  const [jwt, setJwt] = useLocalState("", "jwt");
+  const user = useUser();
   const [assignments, setAssignments] = useState(null);
 
   useEffect(() => {
-    ajax("api/assignments", "GET", jwt).then((assignmentData) => {
+    ajax("api/assignments", "GET", user.jwt).then((assignmentData) => {
       setAssignments(assignmentData);
     });
-
-    // fetch("api/assignments", {
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //     authorization: `Bearer ${jwt}`,
-    //   },
-    //   method: "GET",
-    // })
-    //   .then((Response) => {
-    //     if (Response.status === 200) return Response.json();
-    //   })
-    //   .then((assignmentsData) => {
-    //     setAssignments(assignmentsData);
-    //   })
-  }, [jwt]);
+  }, [user.jwt]);
 
   function createAssignment() {
-    ajax("api/assignments", "POST", jwt)
-      // fetch("api/assignments", {
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //     authorization: `Bearer ${jwt}`,
-      //   },
-      //   method: "POST",
-      // })
-      //   .then((Response) => {
-      //     if (Response.status === 200) return Response.json();
-      //   })
+    ajax("api/assignments", "POST", user.jwt)
       .then((assignment) => {
         window.location.href = `/assignments/${assignment.id}`;
       });
@@ -52,7 +30,7 @@ const Dashboard = () => {
             <div className="d-flex justify-content-end"
                 style={{ cursor: "pointer"}} 
                 onClick={() => {
-                  setJwt(null);
+                  user.setJwt(null);
                   window.location.href = "/login";
                 }}>
               Logout</div>
@@ -73,7 +51,6 @@ const Dashboard = () => {
           style={{ gridTemplateColumns: "repeat(auto-fill, 18rem)" }}
         >
           {assignments.map((assignment) => (
-            // <Col>
             <Card
               key={assignment.id}
               style={{ width: "18rem", height: "18rem" }}
@@ -84,9 +61,7 @@ const Dashboard = () => {
               >
                 <Card.Title>Assignment #{assignment.number}</Card.Title>
                 <div className="d-flex align-items-start">
-                  <Badge pill bg="success" style={{ fontSize: "1em" }}>
-                    {assignment.status}
-                  </Badge>
+                  <StatusBadge text={assignment.status} />
                 </div>
                 <Card.Text style={{ marginTop: "1em" }}>
                   GitHub URL: {assignment.githubUrl}
@@ -105,7 +80,6 @@ const Dashboard = () => {
                 </Button>
               </Card.Body>
             </Card>
-            // </Col>
           ))}
         </div>
       ) : (

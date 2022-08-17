@@ -10,6 +10,7 @@ import com.ua.assignmentsubmissionapp.util.AuthorityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -25,10 +26,12 @@ public class AssignmentController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private UserDetailsService userDetailsService;
+
     @PostMapping("")
     public ResponseEntity<?> createAssignment(@AuthenticationPrincipal User user) {
         Assignment newAssignment = assignmentService.save(user);
-
         return ResponseEntity.ok(newAssignment);
     }
 
@@ -49,13 +52,20 @@ public class AssignmentController {
     public ResponseEntity<?> updateAssignment(@PathVariable Long assignmentId,
                                               @RequestBody Assignment assignment,
                                               @AuthenticationPrincipal User user) {
+        // add the code reviewer to this assignment if it was claimed
         if (assignment.getCodeReviewer() != null) {
             User codeReviewer = assignment.getCodeReviewer();
-            codeReviewer = userService.findByUsername(codeReviewer.getUsername()).orElse(new User());
+            codeReviewer = userService.findUserByUsername(codeReviewer.getUsername()).orElseThrow();
+
             if (AuthorityUtil.hasRole(AuthorityEnum.ROLE_CODE_REVIEWER.name(), codeReviewer)) {
                 assignment.setCodeReviewer(codeReviewer);
             }
+        } else {
+            User codeReviewer = userService.findUserByAuthorities(AuthorityEnum.ROLE_CODE_REVIEWER.name());
+            System.out.println("codeReviewer is null: " + codeReviewer);
+            assignment.setCodeReviewer(codeReviewer);
         }
+        System.out.println("codeReviewer: " + assignment.getCodeReviewer());
         Assignment updatedAssignment = assignmentService.save(assignment);
         return ResponseEntity.ok(updatedAssignment);
     }

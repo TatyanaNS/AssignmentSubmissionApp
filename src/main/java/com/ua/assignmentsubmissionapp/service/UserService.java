@@ -16,8 +16,12 @@ public class UserService {
     @Autowired
     private UserRepository userRepo;
 
-    public Optional<User> findByUsername(String username) {
+    public Optional<User> findUserByUsername(String username) {
         return userRepo.findByUsername(username);
+    }
+
+    public User findUserByAuthorities(String authority) {
+        return userRepo.findUserByAuthorities(authority);
     }
 
 //    public void createUser(UserDto userDto) {

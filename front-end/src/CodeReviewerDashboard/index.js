@@ -1,26 +1,30 @@
 import React, { useEffect, useState } from "react";
-import { useLocalState } from "../util/useLocalStorage";
-import { Card, Button, Badge, Row, Col, Container } from "react-bootstrap";
+import { Card, Button, Row, Col, Container } from "react-bootstrap";
 import ajax from "../Services/fetchService";
 import jwt_decode from "jwt-decode";
+import StatusBadge from "../StatusBadge";
+import { useUser } from "../UserProvider";
 
 const CodeReviewerDashboard = () => {
-  const [jwt, setJwt] = useLocalState("", "jwt");
+  const userJwt = useUser();
   const [assignments, setAssignments] = useState(null);
 
+  function editReview (assignment) {
+    window.location.href = `/assignments/${assignment.id}`;
+  }
+
   function climAsignment(asignment) {
-    const decodeJwt = jwt_decode(jwt);
-    console.log("decodeJwt: ", decodeJwt);
+    const decodeJwt = jwt_decode(userJwt.jwt);
     const user = {
       id: null,
       username: decodeJwt.sub,
       authorities: decodeJwt.authorities,
     };
+
     asignment.codeReviewer = user;
     asignment.status = "In Review";
-    ajax(`/api/assignments/${asignment.id}`, "PUT", jwt, asignment).then(
+    ajax(`/api/assignments/${asignment.id}`, "PUT", userJwt.jwt, asignment).then(
       (updateAssignment) => {
-        // TODO: bla bla
         const assignmentCopy = [...assignments];
         const i = assignmentCopy.findIndex((a) => a.id === asignment.id);
         assignmentCopy[i] = updateAssignment;
@@ -30,16 +34,10 @@ const CodeReviewerDashboard = () => {
   }
 
   useEffect(() => {
-    ajax("api/assignments", "GET", jwt).then((assignmentData) => {
+    ajax("api/assignments", "GET", userJwt.jwt).then((assignmentData) => {
       setAssignments(assignmentData);
     });
-  }, [jwt]);
-
-//   function createAssignment() {
-//     ajax("api/assignments", "POST", jwt).then((assignment) => {
-//       window.location.href = `/assignments/${assignment.id}`;
-//     });
-//   }
+  }, [userJwt.jwt]);
 
   return (
     <Container>
@@ -50,7 +48,7 @@ const CodeReviewerDashboard = () => {
               className="d-flex justify-content-end"
               style={{ cursor: "pointer" }}
               onClick={() => {
-                setJwt(null);
+                userJwt.setJwt(null);
                 window.location.href = "/login";
               }}
             >
@@ -83,9 +81,7 @@ const CodeReviewerDashboard = () => {
                     >
                       <Card.Title>Assignment #{assignment.number}</Card.Title>
                       <div className="d-flex align-items-start">
-                        <Badge pill bg="success" style={{ fontSize: "1em" }}>
-                          {assignment.status}
-                        </Badge>
+                        <StatusBadge text={assignment.status} />
                       </div>
                       <Card.Text style={{ marginTop: "1em" }}>
                         GitHub URL: {assignment.githubUrl}
@@ -97,10 +93,10 @@ const CodeReviewerDashboard = () => {
                         type="button"
                         variant="secondary"
                         onClick={() => {
-                          climAsignment(assignment);
+                          editReview(assignment);
                         }}
                       >
-                        Claim
+                        Edit
                       </Button>
                     </Card.Body>
                   </Card>
@@ -114,13 +110,19 @@ const CodeReviewerDashboard = () => {
           <div className="assignment-wrapper-title h3 px-2">
             Awaiting Review
           </div>
-          {(assignments && assignments.filter((assignment) => assignment.status === "Submitted").length > 0) ? (
+          {(assignments && assignments.filter((assignment) => assignment.status === "Submitted"
+            || assignment.status === "Resubmitted").length > 0) ? (
             <div
               className="d-grid gap-3"
               style={{ gridTemplateColumns: "repeat(auto-fill, 18rem)" }}
             >
               {assignments
-                .filter((assignment) => assignment.status === "Submitted")
+                .filter((assignment) => assignment.status === "Submitted"
+                        || assignment.status === "Resubmitted")
+                .sort((a,b) => { 
+                  if (a.status === "Resubmitted") return -1;
+                  else return 1;
+                })
                 .map((assignment) => (
                   <Card
                     key={assignment.id}
@@ -132,9 +134,7 @@ const CodeReviewerDashboard = () => {
                     >
                       <Card.Title>Assignment #{assignment.number}</Card.Title>
                       <div className="d-flex align-items-start">
-                        <Badge pill bg="success" style={{ fontSize: "1em" }}>
-                          {assignment.status}
-                        </Badge>
+                        <StatusBadge text={assignment.status} />
                       </div>
                       <Card.Text style={{ marginTop: "1em" }}>
                         GitHub URL: {assignment.githubUrl}
@@ -181,9 +181,7 @@ const CodeReviewerDashboard = () => {
                     >
                       <Card.Title>Assignment #{assignment.number}</Card.Title>
                       <div className="d-flex align-items-start">
-                        <Badge pill bg="success" style={{ fontSize: "1em" }}>
-                          {assignment.status}
-                        </Badge>
+                        <StatusBadge text={assignment.status} />
                       </div>
                       <Card.Text style={{ marginTop: "1em" }}>
                         GitHub URL: {assignment.githubUrl}
@@ -192,13 +190,12 @@ const CodeReviewerDashboard = () => {
                         Branch: {assignment.branch}
                       </Card.Text>
                       <Button
-                        type="button"
                         variant="secondary"
                         onClick={() => {
-                          climAsignment(assignment);
+                          window.location.href = `/assignments/${assignment.id}`;
                         }}
                       >
-                        Claim
+                        View
                       </Button>
                     </Card.Body>
                   </Card>
@@ -210,7 +207,7 @@ const CodeReviewerDashboard = () => {
         </div>
       </div>
     </Container>
-  );
+    );
 };
-
+  
 export default CodeReviewerDashboard;

@@ -27,6 +27,7 @@ public class User implements UserDetails {
     private Set<Authorities> authorities = new HashSet<>();
     private LocalDate cohortStartDate;
     private Integer bootcampDurationInWeeks;
+    private String name;
 
     @Override
     public Set<Authorities> getAuthorities() {

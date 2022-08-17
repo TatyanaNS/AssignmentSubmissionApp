@@ -46,7 +46,9 @@ public class AssignmentService {
 
     public Set<Assignment> findByUser(User user) {
         boolean hasCodeReviewerRole = user.getAuthorities().stream()
-                .filter(auth -> AuthorityEnum.ROLE_CODE_REVIEWER.name().equals(auth.getAuthority())).count() > 0;
+                .filter(auth -> AuthorityEnum.ROLE_CODE_REVIEWER.name()
+                        .equals(auth.getAuthority())).count() > 0;
+        System.out.println("hasCodeReviewerRole: " + hasCodeReviewerRole);
         if (hasCodeReviewerRole) {
             // load assignments if you're a code reviewer role
             return assignmentRepository.findByCodeReviewer(user);
